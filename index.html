@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIAL | Digital Media Quality Monitoring</title>
+    
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        :root {
+            --primary-blue: #003366;
+            --accent-orange: #f39c12;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        .hidden { display: none !important; }
+
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), 
+                        url('background.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            max-width: 500px;
+            width: 100%;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            align-self: flex-start;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary-blue);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        h2 { color: var(--primary-blue); margin: 0; text-transform: uppercase; font-size: 18px; }
+        p { color: #555; font-size: 13px; margin: 5px 0; }
+        
+        .question { margin-bottom: 15px; }
+        .label-title { display: block; font-weight: bold; margin-bottom: 8px; color: #333; }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+
+        .checkbox-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
+        .checkbox-item input { margin-right: 8px; }
+
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+        }
+
+        button {
+            width: 100%; padding: 14px; background: var(--primary-blue); color: white;
+            border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #reader { width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
+        #loginError { color: #e74c3c; font-weight: bold; display: none; text-align: center; margin-top: 10px; }
+        
+        .readonly-field { background-color: #f0f0f0; border: 1px solid #ddd; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="loginBox">
+        <div class="header">
+            <h2>Authorized Access</h2>
+            <p>Digital Media Audit Portal</p>
+        </div>
+        <div class="question">
+            <label class="label-title">Username</label>
+            <input type="text" id="username" placeholder="Enter Username">
+        </div>
+        <div class="question">
+            <label class="label-title">Password</label>
+            <input type="password" id="password" placeholder="Enter Password">
+        </div>
+        <button type="button" onclick="validateUser()">Login</button>
+        <p id="loginError">Access Denied</p>
+    </div>
+
+    <div id="qrBox" class="hidden">
+        <div class="header">
+            <h2>Scan Asset QR</h2>
+            <p>Scanning will autopopulate Asset, Terminal, Package & Media Type</p>
+        </div>
+        <div id="reader"></div>
+        <button type="button" onclick="skipQR()" style="background: #7f8c8d;">Manual Entry</button>
+    </div>
+
+    <div id="formBox" class="hidden">
+        <div class="header">
+            <h2>Quality Monitoring</h2>
+            <p>DIAL Media Audit</p>
+        </div>
+
+        <form id="monitoringForm">
+            <div class="question">
+                <label class="label-title">Asset Code</label>
+                <input type="text" id="Asset_Code" name="Asset_Code" class="readonly-field" readonly placeholder="Scanning...">
+            </div>
+
+            <div class="question">
+                <label class="label-title">Terminal</label>
+                <input type="text" id="Terminal" name="Terminal" class="readonly-field" readonly placeholder="Scanning...">
+            </div>
+
+            <div class="question">
+                <label class="label-title">Package</label>
+                <input type="text" id="Package" name="Package" class="readonly-field" readonly placeholder="Scanning...">
+            </div>
+
+            <div class="question">
+                <label class="label-title">Media Type</label>
+                <input type="text" id="Media_Type" name="Media_Type" class="readonly-field" readonly placeholder="Scanning...">
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <div class="question">
+                <span class="label-title">Issue Type</span>
+                <div class="options-grid">
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Type" value="Hardware"> Hardware</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Type" value="Software"> Software</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Type" value="Network"> Network</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Type" value="Power"> Power</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Type" value="Site OK"> Site OK</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Type" value="Attendance"> Attendance</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <span class="label-title">Issue Status</span>
+                <div class="options-grid">
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Status" value="Open"> Open</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Status" value="Close"> Close</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <span class="label-title">Issue Description</span>
+                <div class="options-grid">
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="No Issue Found">No Issue Found</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Power Issue (DIAL)">Power Issue (DIAL)</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Power Issue (Timdaa)">Power Issue (Timdaa)</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Content Out of synchronisation">Content Out of sync</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Software Issue (Lemma)">Software (Lemma)</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Media Player - Auto On/Off">Auto On/Off</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Media Player - Content Hang">Content Hang</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Screen - Black Spot">Black Spot</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Enclosure - Lock Issue">Lock Issue</label>
+                    <label class="checkbox-item"><input type="checkbox" name="Issue_Description" value="Network Issue (DIAL)">Network (DIAL)</label>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">Submit Audit</button>
+            <p style="text-align: center; font-size: 11px; color: var(--primary-blue); cursor: pointer; margin-top: 15px;" onclick="backToScanner()">Cancel & Re-scan QR</p>
+        </form>
+    </div>
+</div>
+
+<script>
+    let html5QrCode;
+
+    // LOGIN
+    function validateUser() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        if (u === "1" && p === "1") {
+            document.getElementById('loginBox').classList.add('hidden');
+            document.getElementById('qrBox').classList.remove('hidden');
+            startScanner();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    }
+
+    // SCANNER LOGIC
+    function startScanner() {
+        // Create instance only if it doesn't exist
+        if(!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+        }
+        
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        
+        html5QrCode.start({ facingMode: "environment" }, config, (text) => {
+            const parts = text.split('|');
+            
+            if (parts.length >= 4) {
+                document.getElementById('Asset_Code').value = parts[0].trim();
+                document.getElementById('Terminal').value = parts[1].trim();
+                document.getElementById('Package').value = parts[2].trim();
+                document.getElementById('Media_Type').value = parts[3].trim();
+            } else {
+                document.getElementById('Asset_Code').value = text;
+                alert("QR format incomplete. Please fill missing fields manually.");
+                makeFieldsEditable();
+            }
+            
+            stopScannerAndShowForm();
+        }).catch((err) => {
+            console.error(err);
+            alert("Camera Error. Ensure HTTPS and permissions.");
+        });
+    }
+
+    function stopScannerAndShowForm() {
+        html5QrCode.stop().then(() => {
+            document.getElementById('qrBox').classList.add('hidden');
+            document.getElementById('formBox').classList.remove('hidden');
+        }).catch(err => console.log("Stop failed", err));
+    }
+
+    // NEW: Function to go back to QR page without logging out
+    function backToScanner() {
+        document.getElementById('monitoringForm').reset();
+        resetFieldsToReadonly();
+        document.getElementById('formBox').classList.add('hidden');
+        document.getElementById('qrBox').classList.remove('hidden');
+        startScanner();
+    }
+
+    function makeFieldsEditable() {
+        const fields = ['Asset_Code', 'Terminal', 'Package', 'Media_Type'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            el.readOnly = false;
+            el.style.background = "#fff";
+        });
+    }
+
+    function resetFieldsToReadonly() {
+        const fields = ['Asset_Code', 'Terminal', 'Package', 'Media_Type'];
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            el.readOnly = true;
+            el.style.background = "#f0f0f0";
+        });
+    }
+
+    function skipQR() {
+        makeFieldsEditable();
+        stopScannerAndShowForm();
+    }
+
+    // SUBMISSION
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyYN3C8WaP3YzlUradIjcgq1ASwpmV8ZovQiwrGehTlJpZD0TBFThfJptVf9xxoRaXo/exec';
+    
+    document.getElementById('monitoringForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = 'Uploading...';
+
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((v, k) => { data[k] = data[k] ? data[k] + ", " + v : v; });
+
+        fetch(scriptURL + "?" + new URLSearchParams(data), { method: 'POST', mode: 'no-cors' })
+        .then(() => {
+            alert('Audit Uploaded Successfully!');
+            btn.disabled = false;
+            btn.innerText = 'Submit Audit';
+            backToScanner(); // Go back to scanner instead of location.reload()
+        })
+        .catch((err) => {
+            alert('Error uploading. Please try again.');
+            btn.disabled = false;
+            btn.innerText = 'Submit Audit';
+        });
+    });
+</script>
+</body>
+</html>
