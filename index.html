@@ -27,7 +27,9 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center; /* This centers the container vertically */
             min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
@@ -37,7 +39,7 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            align-self: flex-start;
+            /* Removed align-self: flex-start to allow body alignment to take over */
         }
 
         .header {
@@ -182,7 +184,6 @@
 <script>
     let html5QrCode;
 
-    // LOGIN
     function validateUser() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -195,9 +196,7 @@
         }
     }
 
-    // SCANNER LOGIC
     function startScanner() {
-        // Create instance only if it doesn't exist
         if(!html5QrCode) {
             html5QrCode = new Html5Qrcode("reader");
         }
@@ -232,7 +231,6 @@
         }).catch(err => console.log("Stop failed", err));
     }
 
-    // NEW: Function to go back to QR page without logging out
     function backToScanner() {
         document.getElementById('monitoringForm').reset();
         resetFieldsToReadonly();
@@ -264,7 +262,6 @@
         stopScannerAndShowForm();
     }
 
-    // SUBMISSION
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyYN3C8WaP3YzlUradIjcgq1ASwpmV8ZovQiwrGehTlJpZD0TBFThfJptVf9xxoRaXo/exec';
     
     document.getElementById('monitoringForm').addEventListener('submit', e => {
@@ -282,7 +279,7 @@
             alert('Audit Uploaded Successfully!');
             btn.disabled = false;
             btn.innerText = 'Submit Audit';
-            backToScanner(); // Go back to scanner instead of location.reload()
+            backToScanner();
         })
         .catch((err) => {
             alert('Error uploading. Please try again.');
